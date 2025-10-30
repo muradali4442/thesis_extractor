@@ -1,4 +1,4 @@
-# Thesis Extractor — Biomedical PDF/Text–Table RAG Pipeline
+# Thesis Extractor, Biomedical PDF/Text–Table RAG Pipeline
 
 Modular utilities for **PDF text & table extraction**, **OCR** and a compact **RAG demo** - refactored from a master’s thesis into a clean, testable Python package with a CLI. The thesis investigates how to better leverage **non-textual modalities (tables/figures)** alongside text to answer **competency questions (CQs)** in the biomedical domain using **LLMs** and **BM25** retrieval.
 
