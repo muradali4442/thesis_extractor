@@ -1,0 +1,6 @@
+pdf:
+  dpi: 300
+ocr:
+  lang: eng
+rag:
+  model: google/flan-t5-base

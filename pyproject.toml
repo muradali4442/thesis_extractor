@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thesis-extractor"
+version = "0.1.0"
+description = "Modular PDF text/table extraction, OCR, RAG pipeline, and evaluation utilities for a thesis project."
+authors = [{name="Your Name"}]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "PyPDF2",
+    "pytesseract",
+    "pdf2image",
+    "tabula-py",
+    "pandas",
+    "numpy",
+    "transformers",
+    "rank-bm25",
+    "farm-haystack[preprocessing]",
+    "scikit-learn",
+    "matplotlib",
+    "wordcloud",
+    "click",
+    "pyyaml"
+]
+
+[project.scripts]
+thesis-extractor = "thesis_extractor.cli:main"
