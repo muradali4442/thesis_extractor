@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Tuple, Dict
+from typing import List
 import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support
 
@@ -15,8 +15,6 @@ class Metrics:
 
 def compute_prf1(gold: List[str], pred: List[str]) -> Metrics:
     """Compute micro-averaged P/R/F1 over exact-match labels by token presence."""
-    # Simple token-based bag-of-words presence comparison (example baseline)
-    # For thesis use, replace with your domain-specific metric.
     y_true = []
     y_pred = []
     for g, p in zip(gold, pred):
@@ -31,8 +29,10 @@ def evaluate_csv(pred_csv: str, gold_csv: str, out_csv: str) -> pd.DataFrame:
     pred_df = pd.read_csv(pred_csv)
     gold_df = pd.read_csv(gold_csv)
     merged = pd.merge(gold_df, pred_df, on="id", how="inner", suffixes=("_gold", "_pred"))
-    metrics = compute_prf1(merged["answer_gold"].astype(str).tolist(),
-                           merged["answer_pred"].astype(str).tolist())
+    metrics = compute_prf1(
+        merged["answer_gold"].astype(str).tolist(),
+        merged["answer_pred"].astype(str).tolist(),
+    )
     out = pd.DataFrame([{"precision": metrics.precision, "recall": metrics.recall, "f1": metrics.f1}])
     out.to_csv(out_csv, index=False)
     return out
