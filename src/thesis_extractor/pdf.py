@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional, Iterable
-import io
-import subprocess
+from typing import List, Iterable, Any
 
 import PyPDF2
 import pandas as pd
@@ -25,14 +23,7 @@ except Exception:  # pragma: no cover
 
 
 def extract_text_from_pdf(pdf_path: str | Path) -> str:
-    """Extract plain text from a PDF using PyPDF2.
-
-    Args:
-        pdf_path: Path to a PDF file.
-
-    Returns:
-        Concatenated text of all pages.
-    """
+    """Extract plain text from a PDF using PyPDF2."""
     pdf_path = Path(pdf_path)
     text_parts: List[str] = []
     with pdf_path.open("rb") as f:
@@ -46,15 +37,7 @@ def extract_text_from_pdf(pdf_path: str | Path) -> str:
 
 
 def extract_tables_from_pdf(pdf_path: str | Path, pages: str = "all") -> List[pd.DataFrame]:
-    """Extract tables using tabula-py (requires Java).
-
-    Args:
-        pdf_path: PDF path.
-        pages: Pages spec, e.g. "all", "1-3", "1,3,5".
-
-    Returns:
-        List of DataFrames, one per detected table.
-    """
+    """Extract tables using tabula-py (requires Java)."""
     if tabula is None:
         raise RuntimeError("tabula-py is not installed. Install with `pip install tabula-py`.")
     pdf_path = Path(pdf_path)
@@ -65,14 +48,14 @@ def extract_tables_from_pdf(pdf_path: str | Path, pages: str = "all") -> List[pd
         raise RuntimeError(f"Tabula failed on {pdf_path}: {e}")
 
 
-def pdf_to_images(pdf_path: str | Path, dpi: int = 300) -> List["Image.Image"]:
+def pdf_to_images(pdf_path: str | Path, dpi: int = 300) -> List[Any]:
     """Render PDF pages to PIL Images (requires poppler for pdf2image)."""
     if convert_from_path is None:
         raise RuntimeError("pdf2image is not installed. Install with `pip install pdf2image`.")
     return convert_from_path(str(pdf_path), dpi=dpi)
 
 
-def ocr_images(images: Iterable["Image.Image"], lang: str = "eng") -> str:
+def ocr_images(images: Iterable[Any], lang: str = "eng") -> str:
     """Run OCR on a sequence of PIL Images via pytesseract."""
     if pytesseract is None:
         raise RuntimeError("pytesseract is not installed. Install with `pip install pytesseract`.")
@@ -88,7 +71,6 @@ def ocr_images(images: Iterable["Image.Image"], lang: str = "eng") -> str:
 def save_tables_to_csv(tables: List[pd.DataFrame], out_csv: str | Path) -> None:
     """Save multiple tables to a single CSV with table index separation."""
     out_csv = Path(out_csv)
-    # Concatenate with a marker column
     parts = []
     for idx, df in enumerate(tables):
         df = df.copy()
@@ -97,5 +79,4 @@ def save_tables_to_csv(tables: List[pd.DataFrame], out_csv: str | Path) -> None:
     if parts:
         pd.concat(parts, ignore_index=True).to_csv(out_csv, index=False)
     else:
-        # Write empty CSV with headers
         pd.DataFrame(columns=["table_id"]).to_csv(out_csv, index=False)
