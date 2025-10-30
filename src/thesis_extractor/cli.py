@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 import click
 from . import pdf as pdfmod
 from . import rag as ragmod
 from . import eval as evalmod
-from . import visualize as viz
+from . import visualize as vizmod  # alias to avoid function name clash
 
 
 @click.group()
@@ -83,7 +82,7 @@ def rag_index(data_path: str):
 def rag_ask(question: str, top_k: int):
     store = ragmod.build_document_store()
     pipe = ragmod.build_qa_pipeline(store)
-    # This is a minimal demo; in a real run, you'd persist the store and reuse it.
+    # Minimal demo; in a real run, you'd persist the store and reuse it.
     ragmod.index_texts(store, [question])  # placeholder to avoid empty store
     ans = ragmod.ask(pipe, question, top_k=top_k)
     click.echo(ans)
@@ -111,4 +110,4 @@ def viz():
 @viz.command("metrics")
 @click.option("--csv", "csv_path", type=click.Path(exists=True), required=True)
 def viz_metrics(csv_path: str):
-    viz.plot_metrics(csv_path)
+    vizmod.plot_metrics(csv_path)
