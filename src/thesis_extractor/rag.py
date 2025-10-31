@@ -15,11 +15,14 @@ def build_document_store() -> InMemoryDocumentStore:
 
 
 def make_documents(texts: List[str], meta: Optional[List[dict]] = None) -> List[Document]:
+    """Build Haystack Documents, pairing each text with meta if available."""
     docs: List[Document] = []
-    meta = meta or [{} for _ in range(len(texts))]
-    for t, m in zip(texts, meta, strict=False):
+    meta_list: List[dict] = meta or []
+    for i, t in enumerate(texts):
+        m = meta_list[i] if i < len(meta_list) else {}
         docs.append(Document(content=t, meta=m))
     return docs
+
 
 
 def index_texts(
