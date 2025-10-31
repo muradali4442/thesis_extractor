@@ -45,11 +45,3 @@ thesis-extractor rag ask data out/merged.md question "What metrics are reported 
 ```
 
  -
-
-### Expected output (example)
-
-A short, grounded answer referencing the table, e.g.:
-
-> The study reports **AUC = 0.91** and **Accuracy = 0.87** (see **TABLE 0**).
-
-*(Exact wording may differ by model/provider.)*
