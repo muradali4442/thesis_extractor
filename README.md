@@ -1,78 +1,69 @@
-# Thesis Extractor, Biomedical PDF/Text–Table RAG Pipeline
+# Thesis Extractor — Biomedical PDF/Text–Table RAG
 
-Modular utilities for **PDF text & table extraction**, **OCR** and a compact **RAG demo** - refactored from a master’s thesis into a clean, testable Python package with a CLI. The thesis investigates how to better leverage **non-textual modalities (tables/figures)** alongside text to answer **competency questions (CQs)** in the biomedical domain using **LLMs** and **BM25** retrieval.
+A small, practical toolkit for **PDF text & table extraction**, **OCR** and a simple **RAG** pipeline. It’s based on my master’s thesis and focuses on using both **text and tables** to answer **competency questions (CQs)** in the biomedical domain.
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/<yourname>/thesis_extractor/ci.yml?branch=main)](https://github.com/<yourname>/thesis_extractor/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/muradali4442/thesis_extractor/ci.yml?branch=main)](https://github.com/muradali4442/thesis_extractor/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11%20|%203.12-blue.svg)](#)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-
-> **What this is**  
-> A research-driven, **config-first** package that turns a thesis notebook into a reusable toolchain for **biomedical PDF parsing** (text + tables), **OCR** and a **RAG** workflow (BM25 + LLM). It’s engineered for reproducibility (CLI, tests, CI) and readability for reviewers, hiring managers and admissions committees.
 
 ---
 
-## Abstract (short)
-Biomedical literature is growing rapidly and mixes **text, tables and figures**, making retrieval and synthesis challenging. This project examines the limitations of standard **RAG** systems that underuse non-textual modalities and proposes a modular pipeline that extracts **text and tabular data** from research PDFs, indexes them with **BM25** and synthesizes answers to **competency questions** using an **LLM (Mixtral-8x7B)**.
+## What it does (short)
+- Extract **text** from PDFs with `PyPDF2`.
+- Extract **tables** with `tabula-py` (Java required).
+- Optional **OCR** for scanned PDFs with `pdf2image` + `pytesseract` (Poppler required).
+- **Merge text + tables** into Markdown for LLM-ready context.
+- **RAG demo**: BM25 retrieval (Haystack) + an LLM (tested with **Mixtral‑8x7B** via Hugging Face).
+- Small **evaluation** helpers and a simple **metrics plot**.
+- **CLI** for all tasks; **config** via YAML.
 
-The corpus includes open-source papers from **IEEE** and **CEUR-WS** (AI for Healthcare 2024, Vol-3880; HC@AIxIA 2023, Vol-3578). The approach emphasizes **reproducibility** via open-source tools, public datasets and transparent configuration. Although focused on biomedicine, the design is **domain-agnostic** and applicable to areas like biodiversity, climate science and computational linguistics.
-
-Evaluation considers **faithfulness**, **answer relevance**, **contextual relevance** and **groundedness**, comparing generated answers with expert-validated references. Results show improved integration of diverse sources and effective responses to complex biomedical questions.
-
-> Read the full abstract in **[docs/ABSTRACT.md](docs/ABSTRACT.md)**.
-
----
-
-## Features
-- **PDF → text** via `PyPDF2` with simple error handling
-- **PDF → tables** via `tabula-py` (Java required), CSV output with `table_id` markers
-- **OCR** using `pdf2image` + `pytesseract` (Poppler required)
-- **RAG demo** using Haystack **BM25** + prompt LLM (tested with Mixtral-8x7B; pluggable)
-- **Evaluation helpers** (baseline precision/recall/F1) with hooks to align with thesis metrics
-- **Visualization** utilities (quick metrics plot, word cloud)
-- **CLI** powered by `click`, config-driven (YAML), no hardcoded paths
-- **Tests + CI + pre-commit** (ruff, mypy-ready, black-compatible)
+Read the full abstract in **[docs/ABSTRACT.md](docs/ABSTRACT.md)**.
 
 ---
 
 ## Install
 ```bash
-git clone https://github.com/<yourname>/thesis_extractor.git
+git clone https://github.com/muradali4442/thesis_extractor.git
 cd thesis_extractor
 pip install -e .
-# optional but recommended
+# optional (dev tools)
 pip install -r dev-requirements.txt
 pre-commit install
 ```
 
-### Runtime dependencies
-Core libs are specified in `pyproject.toml`. For OCR/table extraction you may need system deps:
-- **tabula-py** → Java runtime
-- **pdf2image** → Poppler (e.g., `apt install poppler-utils`, `brew install poppler`)
+### System deps
+- `tabula-py` → Java runtime
+- `pdf2image` → Poppler (`apt install poppler-utils` or `brew install poppler`)
 
 ---
 
 ## Quickstart
 ```bash
-# Text extraction
+# 1) Extract from a PDF
 thesis-extractor pdf extract --pdf data/paper.pdf --out out/text.txt
-
-# Table extraction
 thesis-extractor pdf tables  --pdf data/paper.pdf --out out/tables.csv
 
-# OCR (images + text)
-thesis-extractor ocr images  --pdf data/paper.pdf --out out/images
-thesis-extractor ocr text    --pdf data/paper.pdf
+# 2) Merge text + tables to one file (for RAG)
+thesis-extractor data merge --text out/text.txt --tables out/tables.csv --out out/merged.md
 
-# (Optional) RAG demo — index text and ask a competency question (CQ)
-export HF_TOKEN=...   # if your model/host requires it
-thesis-extractor rag index --data out/text.txt
-thesis-extractor rag ask --question "Which clinical outcomes improved and under what conditions?" --top-k 5
-
-# Evaluation + viz (baseline)
-thesis-extractor eval run --pred predictions.csv --gold gold.csv --out out/metrics.csv
-thesis-extractor viz metrics --csv out/metrics.csv
+# 3) Ask a question with BM25 + LLM (Mixtral via HF Inference)
+export HF_TOKEN=...  # or pass --api-key
+thesis-extractor rag ask   --data out/merged.md   --question "Which clinical outcomes improved and under what conditions?"   --model mistralai/Mixtral-8x7B-Instruct-v0.1   --top-k 5
 ```
+
+---
+
+## Config (example)
+Edit `configs/base.yaml` or pass flags:
+```yaml
+pdf:
+  dpi: 300
+ocr:
+  lang: eng
+rag:
+  model: mistralai/Mixtral-8x7B-Instruct-v0.1
+```
+> You can also override on the CLI for one‑off runs.
 
 ---
 
@@ -80,88 +71,34 @@ thesis-extractor viz metrics --csv out/metrics.csv
 ```
 src/thesis_extractor/
   pdf.py         # text & table extraction, OCR helpers
-  rag.py         # Haystack BM25 + prompt LLM wiring (optional)
-  eval.py        # baseline evaluation utilities
-  visualize.py   # plotting & word cloud
+  preprocess.py  # merge text + tables -> Markdown
+  rag.py         # Haystack BM25 + LLM (Mixtral via HF)
+  eval.py        # baseline metrics
+  visualize.py   # simple plotting
   cli.py         # CLI commands
+configs/
 tests/
-.github/workflows/ci.yml  # CI (pytest, ruff, mypy)
-configs/base.yaml         # defaults
+.github/workflows/ci.yml
 ```
 
 ---
 
-## Configuration
-Edit `configs/base.yaml` or pass flags on the CLI. Example:
-```yaml
-pdf:
-  dpi: 300
-ocr:
-  lang: eng
-rag:
-  model: mixtral-8x7b   # or any supported model/endpoint
-```
-You can also override any setting with CLI flags for one-off runs.
-
----
-
-## Dataset & scope (as used in the thesis)
-- Open-source biomedical articles from **IEEE**
-- **CEUR-WS Vol-3880** — *Artificial Intelligence for Healthcare 2024*
-- **CEUR-WS Vol-3578** — *HC@AIxIA 2023: AI for Healthcare*
-
-> The pipeline is **domain-agnostic**. Swap in other corpora (e.g., climate or biodiversity) by changing inputs/configs; no code changes required.
-
----
-
-## Method overview
-1. **Ingestion & Extraction** — PDF → text (`PyPDF2`), PDF → tables (`tabula-py`), optional OCR for scans (`pdf2image` + `pytesseract`)
-2. **Indexing** — chunking and **BM25** retrieval (Haystack `InMemoryDocumentStore`)
-3. **Synthesis** — prompt **LLM** (e.g., Mixtral-8x7B) over retrieved contexts
-4. **Evaluation** — baseline quantitative metrics + thesis-style criteria (faithfulness, answer relevance, contextual relevance, groundedness) against expert-validated references
-
----
-
-## Development
-```bash
-# lint
-ruff check .
-# type-check
-mypy src
-# tests
-pytest -q
-```
-
----
-
-## Roadmap
-- [ ] Persistable document store + real indexing/serving lifecycle
-- [ ] More robust table detection & figure/caption handling
-- [ ] Richer metrics & reporting aligned with faithfulness/groundedness
-- [ ] Example dataset + demo notebook (Colab badge)
-- [ ] Packaging to PyPI
-
----
-
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+## Notes
+- The pipeline is **domain‑agnostic**; I used biomedical papers (IEEE, CEUR‑WS Vol‑3880 & Vol‑3578), but you can point it at any PDFs.
+- To use Mixtral or another LLM on Hugging Face, set `HF_TOKEN` or pass `--api-key`. A custom endpoint can be passed via `--api-base-url`.
 
 ---
 
 ## License
 [MIT](LICENSE)
 
----
-
 ## Citation
-If this work is useful in academic contexts, please cite:
-
 ```bibtex
 @software{thesis_extractor_2025,
-  author = {<Your Name>},
-  title  = {Thesis Extractor: Biomedical PDF/Text–Table RAG Pipeline},
-  year   = {2025},
-  url    = {https://github.com/<yourname>/thesis_extractor},
-  version= {0.1.0}
+  author  = {Your Name},
+  title   = {Thesis Extractor — Biomedical PDF/Text–Table RAG},
+  year    = {2025},
+  url     = {https://github.com/muradali4442/thesis_extractor},
+  version = {0.1.0}
 }
 ```
