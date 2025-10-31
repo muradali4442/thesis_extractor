@@ -5,7 +5,8 @@ import click
 from . import pdf as pdfmod
 from . import rag as ragmod
 from . import eval as evalmod
-from . import visualize as vizmod  # alias to avoid function name clash
+from . import visualize as vizmod
+from .preprocess import merge_text_and_tables
 
 
 @click.group()
@@ -13,6 +14,7 @@ def main():
     """Thesis Extractor CLI."""
 
 
+# ---------------- PDF ----------------
 @main.group()
 def pdf():
     """PDF utilities."""
@@ -38,6 +40,22 @@ def pdf_tables(pdf_path: str, out_csv: str):
     click.echo(f"Wrote tables to {out_csv}")
 
 
+# ---------------- DATA (merge) ----------------
+@main.group()
+def data():
+    """Data preparation utilities."""
+
+
+@data.command("merge")
+@click.option("--text", "text_path", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--tables", "tables_csv", type=click.Path(exists=True, dir_okay=False), required=False)
+@click.option("--out", "out_path", type=click.Path(dir_okay=False), required=True)
+def data_merge(text_path: str, tables_csv: str | None, out_path: str):
+    merged = merge_text_and_tables(text_path, tables_csv, out_path=out_path, title="Merged PDF Text + Tables")
+    click.echo(f"Wrote merged corpus to {out_path} ({len(merged)} chars)")
+
+
+# ---------------- OCR ----------------
 @main.group()
 def ocr():
     """OCR utilities."""
@@ -62,32 +80,52 @@ def ocr_text(pdf_path: str):
     click.echo(text)
 
 
+# ---------------- RAG ----------------
 @main.group()
 def rag():
-    """RAG pipeline (Haystack)."""
+    """RAG pipeline (Haystack BM25 + LLM)."""
 
 
 @rag.command("index")
-@click.option("--data", "data_path", type=click.Path(exists=True), required=True, help="Text file to index.")
-def rag_index(data_path: str):
+@click.option("--data", "data_path", type=click.Path(exists=True), required=True, help="Merged text file (Markdown).")
+@click.option("--split-length", default=256, show_default=True)
+@click.option("--split-overlap", default=32, show_default=True)
+def rag_index(data_path: str, split_length: int, split_overlap: int):
     store = ragmod.build_document_store()
     text = Path(data_path).read_text(encoding="utf-8")
-    ragmod.index_texts(store, [text])
-    click.echo("Indexed 1 document.")
+    ragmod.index_texts(store, [text], split_length=split_length, split_overlap=split_overlap)
+    click.echo("Indexed merged corpus into in-memory BM25 store. (Note: not persisted.)")
 
 
 @rag.command("ask")
 @click.option("--question", required=True)
 @click.option("--top-k", default=5, show_default=True)
-def rag_ask(question: str, top_k: int):
+@click.option("--model", default="mistralai/Mixtral-8x7B-Instruct-v0.1", show_default=True)
+@click.option("--api-base-url", default=None, help="Optional: custom HF endpoint base URL.")
+@click.option("--api-key", default=None, help="Optional: override HF token; else uses HF_TOKEN/HF_API_TOKEN env vars.")
+@click.option("--data", "data_path", type=click.Path(exists=True), required=True, help="Merged text file to index on the fly.")
+@click.option("--split-length", default=256, show_default=True)
+@click.option("--split-overlap", default=32, show_default=True)
+def rag_ask(
+    question: str,
+    top_k: int,
+    model: str,
+    api_base_url: str | None,
+    api_key: str | None,
+    data_path: str,
+    split_length: int,
+    split_overlap: int,
+):
+    # Build fresh store per run (simple & stateless for CI/demo)
     store = ragmod.build_document_store()
-    pipe = ragmod.build_qa_pipeline(store)
-    # Minimal demo; in a real run, you'd persist the store and reuse it.
-    ragmod.index_texts(store, [question])  # placeholder to avoid empty store
-    ans = ragmod.ask(pipe, question, top_k=top_k)
+    text = Path(data_path).read_text(encoding="utf-8")
+    ragmod.index_texts(store, [text], split_length=split_length, split_overlap=split_overlap)
+    pipe = ragmod.build_qa_pipeline(store, model=model, api_base_url=api_base_url, api_key=api_key)
+    ans, ctx = ragmod.ask(pipe, question, top_k=top_k)
     click.echo(ans)
 
 
+# ---------------- EVAL ----------------
 @main.group()
 def eval():
     """Evaluation utilities."""
@@ -102,6 +140,7 @@ def eval_run(pred_csv: str, gold_csv: str, out_csv: str):
     click.echo(df.to_string(index=False))
 
 
+# ---------------- VIZ ----------------
 @main.group()
 def viz():
     """Visualization helpers."""
