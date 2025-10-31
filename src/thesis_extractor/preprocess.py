@@ -17,7 +17,8 @@ def _df_to_markdown(df: pd.DataFrame, max_rows: int = 50, max_cols: int = 20) ->
         df = df.iloc[:max_rows, :]
 
     # Ensure string columns
-    df = df.applymap(lambda x: "" if pd.isna(x) else str(x))
+    df = df.fillna("").astype(str)
+
 
     # Build Markdown
     headers = " | ".join(df.columns.astype(str).tolist())
