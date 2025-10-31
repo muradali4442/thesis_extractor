@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 import pandas as pd
 
@@ -46,7 +46,7 @@ def merge_text_and_tables(
         csvp = Path(tables_csv_path)
         if csvp.exists() and csvp.stat().st_size > 0:
             df = pd.read_csv(csvp)
-            # Expect a 'table_id' column; if missing, fabricate sequential IDs.
+            # Ensure a 'table_id' column; if missing, fabricate sequential IDs.
             if "table_id" not in df.columns:
                 df.insert(0, "table_id", 0)
 
