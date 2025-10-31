@@ -85,7 +85,7 @@ tests/
 
 ## Notes
 - The pipeline is **domain‑agnostic**; I used biomedical papers (IEEE, CEUR‑WS Vol‑3880 & Vol‑3578), but you can point it at any PDFs.
-- To use Mixtral or another LLM on Hugging Face, set `HF_TOKEN` or pass `--api-key`. A custom endpoint can be passed via `--api-base-url`.
+- To use Mixtral or another LLM on Hugging Face, set `HF_TOKEN` or pass `api-key`. A custom endpoint can be passed via `api-base-url`.
 
 ---
 
