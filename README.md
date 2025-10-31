@@ -1,4 +1,4 @@
-# Thesis Extractor — Biomedical PDF/Text–Table RAG
+# Thesis Extractor - Biomedical PDF/Text–Table RAG
 
 A small, practical toolkit for **PDF text & table extraction**, **OCR** and a simple **RAG** pipeline. It’s based on my master’s thesis and focuses on using both **text and tables** to answer **competency questions (CQs)** in the biomedical domain.
 
