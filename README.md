@@ -17,6 +17,7 @@ A small, practical toolkit for **PDF text & table extraction**, **OCR** and a si
 - Small **evaluation** helpers and a simple **metrics plot**.
 - **CLI** for all tasks; **config** via YAML.
 
+Quick demo: see [examples/demo.md](examples/demo.md) (real PDF or toy inputs).  
 Read the full abstract in **[docs/ABSTRACT.md](docs/ABSTRACT.md)**.
 
 ---
@@ -85,7 +86,7 @@ tests/
 
 ## Notes
 - The pipeline is **domain‑agnostic**; I used biomedical papers (IEEE, CEUR‑WS Vol‑3880 & Vol‑3578), but you can point it at any PDFs.
-- To use Mixtral or another LLM on Hugging Face, set `HF_TOKEN` or pass `api-key`. A custom endpoint can be passed via `api-base-url`.
+- To use Mixtral or another LLM on Hugging Face, set `HF_TOKEN` or pass `--api-key`. A custom endpoint can be passed via `--api-base-url`.
 
 ---
 
@@ -95,7 +96,7 @@ tests/
 ## Citation
 ```bibtex
 @software{thesis_extractor_2025,
-  author  = {Your Name},
+  author  = {Murad Ali},,
   title   = {Thesis Extractor — Biomedical PDF/Text–Table RAG},
   year    = {2025},
   url     = {https://github.com/muradali4442/thesis_extractor},
